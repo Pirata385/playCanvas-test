@@ -1,6 +1,6 @@
 import * as pc from 'playcanvas';
 import { WaterType, type WorldData } from '../world/types';
-import { vertexColorMaterial } from './meshFactory';
+import { linearizeColors, vertexColorMaterial } from './meshFactory';
 
 /** Builds the terrain mesh, lake/river water surfaces, ocean and seabed. */
 export class TerrainRenderer {
@@ -26,6 +26,8 @@ export class TerrainRenderer {
 
     this.waterMaterial = this.makeWaterMaterial(new pc.Color(0.16, 0.38, 0.45), 0.78, 60);
     this.oceanMaterial = this.makeWaterMaterial(new pc.Color(0.07, 0.27, 0.42), 0.86, 450);
+    this.oceanMaterial.gloss = 0.75;
+    this.oceanMaterial.update();
 
     const water = this.buildWaterMesh(world);
     if (water) {
@@ -96,7 +98,7 @@ export class TerrainRenderer {
     const mesh = new pc.Mesh(this.app.graphicsDevice);
     mesh.setPositions(positions);
     mesh.setNormals(w.normals);
-    mesh.setColors32(w.colors);
+    mesh.setColors32(linearizeColors(w.colors));
     mesh.setIndices(indices);
     mesh.update(pc.PRIMITIVE_TRIANGLES);
     return mesh;
@@ -172,7 +174,7 @@ export class TerrainRenderer {
     this.waterMaterial.bumpiness = 0.25 + wind * 0.4;
     this.waterMaterial.update();
     this.oceanMaterial.normalMapOffset = new pc.Vec2(ox * 0.5 + this.t * 0.002, oz * 0.5);
-    this.oceanMaterial.bumpiness = 0.3 + wind * 0.6;
+    this.oceanMaterial.bumpiness = 0.2 + wind * 0.4;
     this.oceanMaterial.update();
   }
 

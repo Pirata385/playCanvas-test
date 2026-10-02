@@ -3,7 +3,7 @@ import { clamp, lerp, mixRgb, smoothstep, type RGB } from '../core/math';
 import { Rng } from '../core/rng';
 import { hourOfDay } from '../sim/time';
 import type { WeatherState } from '../sim/Weather';
-import { buildMesh } from './meshFactory';
+import { buildMesh, toLinear8 } from './meshFactory';
 
 const SKY_RADIUS = 1400;
 const CLOUD_COUNT = 46;
@@ -125,7 +125,7 @@ export class Environment {
       const d = new pc.Vec3(Math.sin(v) * Math.cos(u), Math.cos(v), Math.sin(v) * Math.sin(u));
       const right = new pc.Vec3().cross(d, pc.Vec3.UP).normalize();
       const up = new pc.Vec3().cross(right, d).normalize();
-      const s = rng.range(0.0012, 0.0035);
+      const s = rng.range(0.0008, 0.002);
       const base = sp.length / 3;
       for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
         sp.push(d.x + (right.x * a + up.x * b) * s, d.y + (right.y * a + up.y * b) * s, d.z + (right.z * a + up.z * b) * s);
@@ -141,7 +141,7 @@ export class Environment {
     this.starMat.useFog = false;
     this.starMat.diffuse = new pc.Color(0, 0, 0);
     this.starMat.emissive = new pc.Color(1, 1, 1);
-    this.starMat.blendType = pc.BLEND_ADDITIVE;
+    this.starMat.blendType = pc.BLEND_ADDITIVEALPHA;
     this.starMat.cull = pc.CULLFACE_NONE;
     this.starMat.depthWrite = false;
     this.starMat.opacity = 0;
@@ -229,9 +229,9 @@ export class Environment {
         const y = this.skyHeights[i];
         const t = Math.pow(clamp(y, 0, 1), 0.55);
         const col = y < 0 ? horizon : mixRgb(horizon, zenith, t);
-        c[i * 4] = clamp(col[0] * 255, 0, 255);
-        c[i * 4 + 1] = clamp(col[1] * 255, 0, 255);
-        c[i * 4 + 2] = clamp(col[2] * 255, 0, 255);
+        c[i * 4] = toLinear8(col[0]);
+        c[i * 4 + 1] = toLinear8(col[1]);
+        c[i * 4 + 2] = toLinear8(col[2]);
         c[i * 4 + 3] = 255;
       }
       this.skyMesh.setColors32(c);
@@ -240,8 +240,12 @@ export class Environment {
     this.sky.setPosition(cam.x, cam.y, cam.z);
     this.stars.setPosition(cam.x, cam.y, cam.z);
     this.stars.setEulerAngles(0, 0, (simTime * 0.02) % 360);
-    this.starMat.opacity = clamp((1 - daylight * 1.6) * (1 - cloud * 1.1), 0, 1);
-    this.starMat.update();
+    const starAlpha = clamp((1 - daylight * 1.6) * (1 - cloud * 1.1), 0, 1);
+    this.stars.enabled = starAlpha > 0.01;
+    if (this.stars.enabled) {
+      this.starMat.opacity = starAlpha;
+      this.starMat.update();
+    }
 
     // sun & moon discs
     const dist = SKY_RADIUS * 0.9;
@@ -264,7 +268,7 @@ export class Environment {
     } else {
       lightDir = new pc.Vec3(-sunDir.x, -sunDir.y, -sunDir.z);
       light.color = new pc.Color(0.5, 0.6, 0.9);
-      light.intensity = nightI * 0.35 * covered + flash * 2;
+      light.intensity = nightI * 0.6 * covered + flash * 2;
     }
     light.castShadows = this.shadowsEnabled && light.intensity > 0.08;
     // light shines down its -Y axis: aim -Y along -lightDir
@@ -273,7 +277,7 @@ export class Environment {
     this.light.rotateLocal(90, 0, 0);
 
     // ambient
-    const amb = mixRgb([0.07, 0.08, 0.14], [0.42, 0.46, 0.52], daylight);
+    const amb = mixRgb([0.13, 0.15, 0.25], [0.4, 0.44, 0.5], daylight);
     const ambK = 1 - cloud * 0.15;
     this.app.scene.ambientLight = new pc.Color(amb[0] * ambK + flash * 0.6, amb[1] * ambK + flash * 0.6, amb[2] * ambK + flash * 0.7);
 

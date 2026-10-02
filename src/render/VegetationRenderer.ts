@@ -75,14 +75,14 @@ function vegParts(type: VegType): Part[] {
       ];
     case VegType.Grass: {
       const parts: Part[] = [];
-      for (let i = 0; i < 7; i++) {
-        const a = (i / 7) * Math.PI * 2;
-        const r = 0.12 + (i % 3) * 0.08;
+      for (let i = 0; i < 9; i++) {
+        const a = (i / 9) * Math.PI * 2;
+        const r = 0.15 + (i % 3) * 0.1;
         parts.push({
-          kind: 'cone', color: i % 2 ? [0.4, 0.6, 0.2] : [0.35, 0.52, 0.18],
-          pos: [Math.cos(a) * r, 0.3, Math.sin(a) * r],
-          rot: [Math.sin(a) * 15, 0, Math.cos(a) * 15],
-          scale: [0.09, 0.6 + (i % 3) * 0.15, 0.09], segments: 3
+          kind: 'cone', color: i % 2 ? [0.55, 0.68, 0.25] : [0.42, 0.58, 0.2],
+          pos: [Math.cos(a) * r, 0.4, Math.sin(a) * r],
+          rot: [Math.sin(a) * 18, 0, Math.cos(a) * 18],
+          scale: [0.12, 0.8 + (i % 3) * 0.2, 0.12], segments: 3
         });
       }
       return parts;

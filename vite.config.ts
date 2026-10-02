@@ -5,7 +5,7 @@ export default defineConfig({
   worker: { format: 'es' },
   build: {
     target: 'es2022',
-    chunkSizeWarningLimit: 4000,
+    chunkSizeWarningLimit: 5000,
     rollupOptions: {
       output: {
         manualChunks: {

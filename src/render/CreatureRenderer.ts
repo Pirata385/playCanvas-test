@@ -257,7 +257,8 @@ export class CreatureRenderer {
     ringMat.blendType = pc.BLEND_NORMAL;
     ringMat.update();
     this.ring = new pc.Entity('SelectionRing');
-    this.ring.addComponent('render', { type: 'torus', material: ringMat, castShadows: false });
+    const ringMesh = pc.Mesh.fromGeometry(device, new pc.TorusGeometry({ tubeRadius: 0.035, ringRadius: 0.5, segments: 40, sides: 6 }));
+    this.ring.addComponent('render', { meshInstances: [new pc.MeshInstance(ringMesh, ringMat)], castShadows: false });
     this.ring.enabled = false;
     app.root.addChild(this.ring);
   }
@@ -327,7 +328,7 @@ export class CreatureRenderer {
     if (sel) {
       const r = this.batches[sel.species].model.pickRadius * sel.growth * 1.2;
       this.ring.setPosition(sel.x, sel.y + 0.08, sel.z);
-      this.ring.setLocalScale(r * 2, 0.6, r * 2);
+      this.ring.setLocalScale(r * 2, r * 2, r * 2);
       this.ring.setEulerAngles(0, this.time * 60, 0);
     }
   }
@@ -439,6 +440,13 @@ export class CreatureRenderer {
     const idx = p.perCreature === 4 ? p.count++ : p.count;
     this.tmp.mul2(this.root4, local);
     p.data.set(this.tmp.data, idx * 16);
+  }
+
+  /** Comfortable camera distance for viewing a creature. */
+  viewDistance(id: number): number {
+    const c = this.creatures.get(id);
+    if (!c) return 6;
+    return Math.min(9, Math.max(2.5, this.batches[c.species].model.pickRadius * 6));
   }
 
   /** Ray-pick the closest creature. Returns its id or null. */

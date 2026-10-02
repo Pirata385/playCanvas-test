@@ -65,13 +65,9 @@ export function buildMesh(device: pc.GraphicsDevice, parts: Part[], jitter = 0):
       v.set(gn[i], gn[i + 1], gn[i + 2]);
       nm.transformVector(v, v).normalize();
       normals.push(v.x, v.y, v.z);
+      // vertex colours are authored in sRGB but consumed as linear by the shader
       const j = 1 + (rand() - 0.5) * jitter;
-      colors.push(
-        Math.min(255, p.color[0] * j * 255),
-        Math.min(255, p.color[1] * j * 255),
-        Math.min(255, p.color[2] * j * 255),
-        255
-      );
+      colors.push(toLinear8(p.color[0] * j), toLinear8(p.color[1] * j), toLinear8(p.color[2] * j), 255);
     }
     const gi = g.indices!;
     for (let i = 0; i < gi.length; i++) indices.push(base + gi[i]);
@@ -83,6 +79,18 @@ export function buildMesh(device: pc.GraphicsDevice, parts: Part[], jitter = 0):
   mesh.setIndices(positions.length / 3 > 65535 ? new Uint32Array(indices) : new Uint16Array(indices));
   mesh.update(pc.PRIMITIVE_TRIANGLES);
   return mesh;
+}
+
+/** Convert an sRGB channel (0..1) to a linear 8-bit value. */
+export function toLinear8(c: number): number {
+  return Math.round(Math.pow(Math.min(1, Math.max(0, c)), 2.2) * 255);
+}
+
+/** Linearise an sRGB RGBA8 colour array in place. */
+export function linearizeColors(src: Uint8Array): Uint8Array {
+  const out = new Uint8Array(src.length);
+  for (let i = 0; i < src.length; i++) out[i] = (i & 3) === 3 ? src[i] : toLinear8(src[i] / 255);
+  return out;
 }
 
 /** A lit material that takes its albedo from vertex colours. */

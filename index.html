@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Isle of Seeds — PlayCanvas Ecosystem Demo</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏝️</text></svg>" />
+  </head>
+  <body>
+    <canvas id="app"></canvas>
+
+    <!-- start / title screen -->
+    <section id="start-screen" class="screen">
+      <div class="panel title-panel">
+        <h1>Isle of Seeds</h1>
+        <p class="subtitle">A living, procedurally generated island — built with PlayCanvas, Rapier &amp; Web Workers</p>
+        <label class="field">
+          <span>World seed</span>
+          <div class="row">
+            <input id="seed-input" type="text" spellcheck="false" autocomplete="off" />
+            <button id="seed-random" class="secondary" title="Random seed">🎲</button>
+          </div>
+        </label>
+        <div class="row gap">
+          <button id="start-button" class="primary">Generate &amp; Explore</button>
+        </div>
+        <div id="start-saves" class="saves"></div>
+        <details class="controls-help">
+          <summary>Controls</summary>
+          <div class="help-grid" id="help-grid-start"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- loading -->
+    <section id="loading-screen" class="screen hidden">
+      <div class="panel loading-panel">
+        <h2 id="loading-title">Generating island…</h2>
+        <div class="progress"><div id="loading-bar"></div></div>
+        <p id="loading-stage">Preparing</p>
+      </div>
+    </section>
+
+    <!-- in-game HUD -->
+    <section id="hud" class="hidden">
+      <div id="clock" class="hud-box">
+        <div class="clock-time"><span id="clock-day">Day 1</span> <strong id="clock-hm">07:00</strong></div>
+        <div id="clock-weather">Clear</div>
+      </div>
+      <div id="time-controls" class="hud-box">
+        <button data-scale="0" title="Pause simulation (0)">⏸</button>
+        <button data-scale="1" title="1× (1)">1×</button>
+        <button data-scale="2" title="2× (2)">2×</button>
+        <button data-scale="5" title="5× (3)">5×</button>
+        <button data-scale="10" title="10× (4)">10×</button>
+        <button data-scale="30" title="30× (5)">30×</button>
+        <button data-scale="60" title="60× (6)">60×</button>
+      </div>
+      <div id="journal" class="hud-box" title="Inspect one of each species to complete your field journal">
+        <div class="journal-title">Field journal <span id="journal-count">0/4</span></div>
+        <div id="journal-list"></div>
+      </div>
+      <div id="minimap-wrap" class="hud-box">
+        <canvas id="minimap" width="200" height="200"></canvas>
+        <div class="minimap-hint">M · map</div>
+      </div>
+      <div id="crosshair"></div>
+      <div id="hint"></div>
+      <div id="event-feed"></div>
+      <div id="toast"></div>
+      <div id="mode-indicator" class="hud-box"></div>
+
+      <aside id="inspector" class="panel hidden">
+        <header>
+          <div>
+            <h3 id="insp-name">Name</h3>
+            <div id="insp-sub" class="muted"></div>
+          </div>
+          <button id="insp-close" class="icon" title="Close">✕</button>
+        </header>
+        <div id="insp-state" class="state-pill"></div>
+        <div class="bars">
+          <div class="bar"><span>Hunger</span><div><i id="bar-hunger"></i></div></div>
+          <div class="bar"><span>Thirst</span><div><i id="bar-thirst"></i></div></div>
+          <div class="bar"><span>Energy</span><div><i id="bar-energy"></i></div></div>
+          <div class="bar"><span>Health</span><div><i id="bar-health"></i></div></div>
+          <div class="bar"><span>Age</span><div><i id="bar-age"></i></div></div>
+        </div>
+        <dl id="insp-facts"></dl>
+        <div class="row gap">
+          <button id="insp-follow" class="secondary">🎥 Follow</button>
+        </div>
+      </aside>
+
+      <aside id="debug" class="panel mono hidden">
+        <div class="debug-title">Debug <span class="muted">F3</span></div>
+        <table id="debug-table"></table>
+        <canvas id="pop-graph" width="260" height="90"></canvas>
+        <div class="legend" id="pop-legend"></div>
+      </aside>
+    </section>
+
+    <!-- full map -->
+    <section id="bigmap" class="screen hidden">
+      <div class="panel map-panel">
+        <header>
+          <h2>Island map</h2>
+          <div class="muted">Click to fast-travel · M to close</div>
+        </header>
+        <canvas id="bigmap-canvas" width="640" height="640"></canvas>
+        <div class="legend" id="map-legend"></div>
+      </div>
+    </section>
+
+    <!-- pause menu -->
+    <section id="pause-screen" class="screen hidden">
+      <div class="panel pause-panel">
+        <h2>Paused</h2>
+        <div class="muted" id="pause-info"></div>
+        <div class="menu-cols">
+          <div>
+            <h4>Game</h4>
+            <button id="btn-resume" class="primary wide">Resume</button>
+            <button id="btn-regen" class="secondary wide" title="Rebuild the world from the same seed">Regenerate (same seed)</button>
+            <label class="field">
+              <span>New world seed</span>
+              <div class="row">
+                <input id="new-seed-input" type="text" spellcheck="false" autocomplete="off" />
+                <button id="new-seed-random" class="secondary" title="Random seed">🎲</button>
+              </div>
+            </label>
+            <button id="btn-newworld" class="secondary wide">Generate new world</button>
+          </div>
+          <div>
+            <h4>Save / Load</h4>
+            <div id="slots"></div>
+            <div class="row gap">
+              <button id="btn-export" class="secondary">Export file</button>
+              <label class="button secondary">Import file<input id="import-file" type="file" accept="application/json" hidden /></label>
+            </div>
+          </div>
+          <div>
+            <h4>Settings</h4>
+            <label class="field"><span>Volume <em id="vol-label"></em></span><input id="volume" type="range" min="0" max="100" /></label>
+            <label class="field"><span>Mouse sensitivity</span><input id="sensitivity" type="range" min="2" max="40" /></label>
+            <label class="check"><input id="shadows" type="checkbox" /> Shadows</label>
+            <label class="check"><input id="show-debug" type="checkbox" /> Debug panel</label>
+          </div>
+        </div>
+        <details class="controls-help" open>
+          <summary>Controls</summary>
+          <div class="help-grid" id="help-grid-pause"></div>
+        </details>
+      </div>
+    </section>
+
+    <div id="error-box" class="hidden"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
