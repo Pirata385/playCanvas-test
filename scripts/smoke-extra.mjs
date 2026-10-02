@@ -54,12 +54,14 @@ try {
     return best;
   });
   console.log('lake', JSON.stringify(lake));
+  // software rendering is slow, so wait on game state rather than wall-clock time
+  await page.waitForFunction(() => window.game.session.player.swimming, null, { timeout: 60000 }).catch(() => {});
   await page.keyboard.down('KeyW');
   await page.waitForTimeout(2500);
   await page.keyboard.up('KeyW');
   const swim = await page.evaluate(() => {
     const p = window.game.session.player;
-    return { swimming: p.swimming, feet: p.feetY, water: window.game.session.query.waterAt(p.x, p.z), state: window.game.state };
+    return { swimming: p.swimming, feet: p.feetY, water: window.game.session.query.waterAt(p.x, p.z), fps: window.game.fps };
   });
   console.log('swimming', JSON.stringify(swim));
   if (!swim.swimming) throw new Error('expected the player to be swimming');
