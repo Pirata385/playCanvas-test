@@ -31,8 +31,18 @@ export class DebugPanel {
   private table = $('debug-table');
   private graph = $<HTMLCanvasElement>('pop-graph');
   visible = false;
+  onNextWeather: () => void = () => {};
+  onSkip: () => void = () => {};
 
   constructor() {
+    $('dbg-weather').addEventListener('click', (e) => {
+      this.onNextWeather();
+      (e.currentTarget as HTMLElement).blur();
+    });
+    $('dbg-skip').addEventListener('click', (e) => {
+      this.onSkip();
+      (e.currentTarget as HTMLElement).blur();
+    });
     $('pop-legend').innerHTML = Object.values(SPECIES).map((d) => `<span style="--c:${d.color}">${d.plural}</span>`).join('');
   }
 

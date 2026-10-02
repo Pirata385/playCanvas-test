@@ -84,7 +84,7 @@ export class PlayerAvatar {
     const throwAngle = throwing > 0 ? -150 * Math.sin(Math.min(1, throwing) * Math.PI) : 0;
     this.armL.setLocalEulerAngles(swimming ? -150 + s * 40 : -s * amp * 40, 0, swimming ? 0 : 4);
     this.armR.setLocalEulerAngles(swimming ? -150 - s * 40 : s * amp * 40 + throwAngle, 0, swimming ? 0 : -4);
-    this.body.setLocalPosition(0, 0.95 + (grounded ? Math.abs(Math.cos(this.phase)) * 0.04 * amp : 0) - (swimming ? 0.5 : 0), 0);
+    this.body.setLocalPosition(0, 0.95 + (grounded ? Math.abs(Math.cos(this.phase)) * 0.04 * amp : 0) - (swimming ? 0.1 : 0), 0);
     this.body.setLocalEulerAngles(swimming ? 70 : speed > 6 ? 10 : 0, 0, 0);
   }
 

@@ -17,7 +17,7 @@ import type { CreatureDetail } from '../sim/Ecosystem';
 import type { SimSnapshot } from '../sim/protocol';
 import { SimClient } from '../sim/SimClient';
 import { Anim, SPECIES, SPECIES_COUNT, Species } from '../sim/species';
-import { dayNumber, formatClock, hourOfDay } from '../sim/time';
+import { DAY_SECONDS, dayNumber, formatClock, hourOfDay } from '../sim/time';
 import { initialWeather, type WeatherState } from '../sim/Weather';
 import { DebugPanel } from '../ui/DebugPanel';
 import { $, show } from '../ui/dom';
@@ -137,6 +137,8 @@ export class Game {
 
     this.hud.onTimeScale = (s) => this.setTimeScale(s);
     this.inspector.onClose = () => this.select(null);
+    this.debug.onNextWeather = () => this.session?.sim.forceWeather();
+    this.debug.onSkip = () => this.session?.sim.advance((3 / 24) * DAY_SECONDS);
     this.inspector.onFollow = () => this.toggleFollow();
 
     this.input.onLockChange = (locked) => {

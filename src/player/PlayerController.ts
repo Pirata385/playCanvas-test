@@ -55,7 +55,8 @@ export class PlayerController {
     const water = this.world.waterAt(this.x, this.z);
     const depth = water - this.feetY;
     const wasSwimming = this.swimming;
-    this.swimming = depth > 1.25;
+    // hysteresis so floating at the surface stays in the swimming state
+    this.swimming = depth > (wasSwimming ? 0.8 : 1.05);
     if (this.swimming && !wasSwimming && this.vy < -3) this.onEvent('splash');
     const wading = !this.swimming && depth > 0.3;
     const target = this.swimming ? SWIM : this.sprinting ? SPRINT : wading ? WALK * 0.6 : WALK;
@@ -67,7 +68,7 @@ export class PlayerController {
     this.jumpBuffer -= dt;
     if (this.swimming) {
       // buoyancy: float with the head above water
-      const targetY = water - 0.75 + this.physics.playerHalfHeight;
+      const targetY = water - 0.35;
       this.vy += ((targetY - this.y) * 6 - this.vy) * damp(4, dt);
       if (enabled && input.isDown('Space')) this.vy = Math.max(this.vy, 2.5);
     } else {

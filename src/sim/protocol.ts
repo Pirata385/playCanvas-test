@@ -9,7 +9,9 @@ export type SimRequest =
   | { type: 'scare'; x: number; z: number; radius: number }
   | { type: 'select'; id: number | null }
   | { type: 'save'; requestId: number }
-  | { type: 'load'; save: SimSave };
+  | { type: 'load'; save: SimSave }
+  | { type: 'forceWeather' }
+  | { type: 'advance'; seconds: number };
 
 export interface SimSnapshot {
   type: 'snapshot';

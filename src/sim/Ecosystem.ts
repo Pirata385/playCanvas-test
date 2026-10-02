@@ -987,6 +987,12 @@ export class Ecosystem {
     });
   }
 
+  /** Debug: jump to the next weather regime. */
+  forceWeather(): void {
+    this.weather.kind = (this.weather.kind + 1) % 5;
+    this.weather.timeLeft = DAY_SECONDS * 0.3;
+  }
+
   // ------------------------------------------------------------------ output
 
   snapshot(out: Float32Array): number {

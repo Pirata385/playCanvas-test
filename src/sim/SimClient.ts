@@ -70,6 +70,14 @@ export class SimClient {
     this.send({ type: 'load', save });
   }
 
+  forceWeather(): void {
+    this.send({ type: 'forceWeather' });
+  }
+
+  advance(seconds: number): void {
+    this.send({ type: 'advance', seconds });
+  }
+
   dispose(): void {
     this.worker.terminate();
   }

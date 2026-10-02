@@ -115,7 +115,9 @@ Everything is synthesised at runtime from noise buffers and oscillators:
 
 ### Debug panel (`F3`)
 
-Shows FPS and frame time, draw calls and triangles, scene entity count, simulated agents, per-species populations, sim tick, ticks per second and ms per tick, time scale, seed, Rapier bodies and colliders, vegetation instances, active particle systems, grazing food level, births and deaths, and a live population graph.
+Shows FPS and frame time, draw calls, terrain triangles, scene entity count, simulated agents, per-species populations, sim tick, ticks per second and ms per tick, time scale, seed, Rapier bodies and colliders, vegetation instances, active particle systems, grazing food level, births and deaths, and a live population graph.
+
+It also has two buttons for showing off the demo: **Next weather** cycles the weather regime, and **Skip 3h** simulates three in-game hours instantly.
 
 ## Tests
 
@@ -127,4 +129,4 @@ Shows FPS and frame time, draw calls and triangles, scene entity count, simulate
 * Ecosystem determinism, survival of every species over several days, and bit-exact save/load continuation.
 * Rapier heightfield alignment and character landing.
 
-`node scripts/smoke.mjs` runs the production build in headless Chromium and takes screenshots. Run `npm run build` first.
+`npm run smoke` builds the game and runs two headless Chromium scenarios (`scripts/smoke.mjs` and `scripts/smoke-extra.mjs`). Between them they cover the title screen, third-person play, creature inspection and follow cam, stone throwing, quick save/load, the aerial view, night, rain and storm particles, swimming, the map and the pause menu. They save screenshots and fail if any console errors appear.

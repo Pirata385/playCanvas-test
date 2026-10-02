@@ -209,7 +209,8 @@ export class Environment {
     let horizon = mixRgb(HORIZON_NIGHT, HORIZON_DAY, daylight);
     zenith = mixRgb(zenith, ZENITH_DUSK, dusk * 0.6);
     horizon = mixRgb(horizon, HORIZON_DUSK, dusk * 0.85);
-    const overcast: RGB = [OVERCAST[0] * (0.08 + daylight * 0.92), OVERCAST[1] * (0.08 + daylight * 0.92), OVERCAST[2] * (0.1 + daylight * 0.9)];
+    const gloom = (0.08 + daylight * 0.92) * (1 - weather.rain * 0.45);
+    const overcast: RGB = [OVERCAST[0] * gloom, OVERCAST[1] * gloom, OVERCAST[2] * gloom * 1.05];
     const oc = clamp(cloud * 0.85 + weather.fog * 0.5, 0, 0.95);
     zenith = mixRgb(zenith, overcast, oc);
     horizon = mixRgb(horizon, overcast, oc * 0.9);

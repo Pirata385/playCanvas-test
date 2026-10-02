@@ -92,6 +92,7 @@ try {
   await shot('failure');
 } finally {
   log(errors.length ? errors.slice(0, 40).join('\n') : 'no console errors');
+  if (errors.some((e) => e.startsWith('[error]') || e.startsWith('[pageerror]'))) failed = true;
   await browser.close();
   server.kill();
   process.exit(failed ? 1 : 0);

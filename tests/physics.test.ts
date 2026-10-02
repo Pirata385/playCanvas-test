@@ -2,7 +2,10 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { initRapier, Physics, toRapierHeights } from '../src/physics/Physics';
 import { generateWorld, sampleHeight } from '../src/world/generate';
-import type { WorldData } from '../src/world/types';
+import { WaterType, type WorldData } from '../src/world/types';
+import { PlayerController } from '../src/player/PlayerController';
+import { WorldQuery } from '../src/world/WorldQuery';
+import type { Input } from '../src/player/Input';
 
 let world: WorldData;
 
@@ -40,6 +43,32 @@ describe('physics heightfield', () => {
     }
     const feet = pos.y - physics.playerHalfHeight - physics.playerRadius;
     expect(Math.abs(feet - ground)).toBeLessThan(0.5);
+    physics.destroy();
+  });
+
+  it('makes the player float and swim in deep lakes', () => {
+    const q = new WorldQuery(world);
+    let lake = -1;
+    for (let i = 0; i < world.res * world.res; i++) {
+      if (world.waterType[i] === WaterType.Lake && world.waterLevel[i] - world.heights[i] > 2.5) {
+        lake = i;
+        break;
+      }
+    }
+    expect(lake).toBeGreaterThanOrEqual(0);
+    const x = (lake % world.res) * world.cell;
+    const z = Math.floor(lake / world.res) * world.cell;
+    const physics = new Physics(world, { x, y: q.heightAt(x, z) + 5, z });
+    const player = new PlayerController(physics, q);
+    player.teleport(x, z);
+    const idle = { axis: () => 0, isDown: () => false, pressed: () => false } as unknown as Input;
+    for (let i = 0; i < 180; i++) {
+      player.update(1 / 60, idle, 0, true);
+      physics.update(1 / 60);
+    }
+    expect(player.swimming).toBe(true);
+    const water = q.waterAt(x, z);
+    expect(Math.abs(player.y - (water - 0.35))).toBeLessThan(0.5);
     physics.destroy();
   });
 });

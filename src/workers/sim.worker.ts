@@ -119,6 +119,16 @@ ctx.onmessage = (ev: MessageEvent<SimRequest>) => {
       case 'save':
         if (eco) post({ type: 'saved', requestId: msg.requestId, save: eco.serialize() });
         break;
+      case 'forceWeather':
+        eco?.forceWeather();
+        break;
+      case 'advance':
+        if (eco) {
+          const n = Math.round(msg.seconds / TICK_SECONDS);
+          for (let i = 0; i < n; i++) eco.step();
+          sendSnapshot();
+        }
+        break;
       case 'load':
         if (eco) {
           eco.load(msg.save);

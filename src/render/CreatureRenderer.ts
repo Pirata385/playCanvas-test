@@ -300,7 +300,7 @@ export class CreatureRenderer {
   }
 
   update(dt: number, camX: number, camZ: number, simScale: number): void {
-    this.time += dt;
+    if (simScale > 0) this.time += dt;
     this.interp = Math.min(1, this.interp + dt / this.interval);
     const t = this.interp;
     for (const b of this.batches) b.body.count = b.head.count = b.legs.count = b.tail.count = 0;
@@ -311,7 +311,7 @@ export class CreatureRenderer {
       c.heading = c.fromH + angleDiff(c.fromH, c.toH) * t;
       c.y = this.world.heightAt(c.x, c.z);
       const model = this.batches[c.species].model;
-      c.phase += c.speed * dt * model.stride * Math.PI * Math.min(4, Math.max(1, simScale));
+      c.phase += c.speed * dt * model.stride * Math.PI * Math.min(4, simScale);
       if ((c.x - camX) ** 2 + (c.z - camZ) ** 2 > maxDist2) continue;
       this.writeCreature(c);
     }
